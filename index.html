@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Personal App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    input, button {
+      padding: 10px;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 id="greeting">Welcome!</h1>
+
+  <div id="nameForm">
+    <p>Enter your name:</p>
+    <input id="nameInput" type="text" placeholder="Your name" />
+    <button onclick="saveName()">Save</button>
+  </div>
+
+  <!-- <div id="events"> -->
+    <!-- <p>Add an event:</p> -->
+    <!-- <input id="eventNameInput" type="text" placeholder="Event name" /> -->
+    <!-- <button onclick="addEvent()">Add New Event</button>
+  </div> -->
+
+  <div id="eventListView">
+    <h2>Your Events:</h2>
+    <ul id="eventList"></ul>
+    <button onclick="showEventForm()">Add Event</button>
+  </div>
+
+  <div id="eventFormView">
+    <h2>Add an Event:</h2>
+    <input id="eventNameInput" type="text" placeholder="Event name" />
+    <button onclick="addEvent()">Add New Event</button>
+    <br/>
+    <button onclick="showEventList()">Back to Event List</button>
+  </div>
+
+  <script>
+    const savedName = localStorage.getItem("username");
+    user_entries = [];
+
+    if (savedName) {
+      document.getElementById("greeting").innerText = "Welcome back, " + savedName + "!";
+      document.getElementById("nameForm").style.display = "none";
+    } else {
+      document.getElementById("events").style.display = "none";
+    }
+
+    function saveName() {
+      const input = document.getElementById("nameInput").value;
+      if (input) {
+        localStorage.setItem("username", input);
+        location.reload(); // reload to show the greeting
+      }
+    }
+
+    function showEventForm() {
+        document.getElementById("eventListView").style.display = "none";
+        document.getElementById("eventFormView").style.display = "block";
+    }
+
+    function showEventList() {
+        document.getElementById("eventFormView").style.display = "none";
+        document.getElementById("eventListView").style.display = "block";
+    }
+
+    function addEvent() {
+      document.getElementById("greeting").style.display = "none";
+      const eventInput = document.getElementById("eventNameInput").value;
+
+      if (eventInput) {
+        user_entries.push(eventInput);
+        alert("Event '" + eventInput + "' added!");
+        document.getElementById("eventNameInput").value = ""; // clear input
+      }
+      loadEvents();
+    }
+
+    // function loadEvents() {
+    //     let events = JSON.parse(localStorage.getItem("events") || "[]");
+    //     const list = document.getElementById("eventList");
+    //     list.innerHTML = "";
+    //     events.forEach(event => {
+    //         const li = document.createElement("li");
+    //         li.innerText = event;
+    //         list.appendChild(li);
+    //     });
+    // }
+
+    if (savedName) {
+        loadEvents();
+    }
+
+  </script>
+
+</body>
+</html>
