@@ -12,6 +12,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <h1 id="greeting">Welcome!</h1>
@@ -22,83 +23,141 @@
     <button onclick="saveName()">Save</button>
   </div>
 
-  <!-- <div id="events"> -->
-    <!-- <p>Add an event:</p> -->
-    <!-- <input id="eventNameInput" type="text" placeholder="Event name" /> -->
-    <!-- <button onclick="addEvent()">Add New Event</button>
-  </div> -->
-
-  <div id="eventListView">
+  <!-- Event List View -->
+  <div id="eventListView" style="display:none;">
     <h2>Your Events:</h2>
     <ul id="eventList"></ul>
     <button onclick="showEventForm()">Add Event</button>
   </div>
 
-  <div id="eventFormView">
+  <!-- Event Form View -->
+  <div id="eventFormView" style="display:none;">
     <h2>Add an Event:</h2>
+
+    <!-- Event Name -->
+    <p>Event Name:</p>
     <input id="eventNameInput" type="text" placeholder="Event name" />
-    <button onclick="addEvent()">Add New Event</button>
-    <br/>
+
+    <!-- Color -->
+    <p>Event Color:</p>
+    <input id="eventColorInput" type="color" />
+
+    <!-- Time -->
+    <p>Time:</p>
+    <input id="eventTimeInput" type="time" />
+
+    <!-- Day -->
+    <p>Day of Week:</p>
+    <select id="eventDayInput">
+      <option>Monday</option>
+      <option>Tuesday</option>
+      <option>Wednesday</option>
+      <option>Thursday</option>
+      <option>Friday</option>
+      <option>Saturday</option>
+      <option>Sunday</option>
+    </select>
+
+    <!-- Repetition -->
+    <p>Repetition:</p>
+    <select id="eventRepeatInput">
+      <option>None</option>
+      <option>Daily</option>
+      <option>Weekly</option>
+      <option>Monthly</option>
+    </select>
+
+    <p>Remind every X days:</p>
+    <input id="eventEveryXDays" type="number" min="1" placeholder="ex: 3" />
+
+    <!-- Rotation (sub-events) -->
+    <p>Rotation / Sub-events (comma separated):</p>
+    <input id="eventRotationInput" type="text" placeholder="ex: wash, dry, fold" />
+
+    <br/><br/>
+    <button onclick="addEvent()">Save Event</button>
+    <br/><br/>
     <button onclick="showEventList()">Back to Event List</button>
   </div>
 
   <script>
     const savedName = localStorage.getItem("username");
-    user_entries = [];
 
+    // If name exists → show greeting + events
     if (savedName) {
       document.getElementById("greeting").innerText = "Welcome back, " + savedName + "!";
       document.getElementById("nameForm").style.display = "none";
-    } else {
-      document.getElementById("events").style.display = "none";
+      document.getElementById("eventListView").style.display = "block";
     }
 
     function saveName() {
       const input = document.getElementById("nameInput").value;
       if (input) {
         localStorage.setItem("username", input);
-        location.reload(); // reload to show the greeting
+        location.reload();
       }
     }
 
     function showEventForm() {
-        document.getElementById("eventListView").style.display = "none";
-        document.getElementById("eventFormView").style.display = "block";
+      document.getElementById("eventListView").style.display = "none";
+      document.getElementById("eventFormView").style.display = "block";
     }
 
     function showEventList() {
-        document.getElementById("eventFormView").style.display = "none";
-        document.getElementById("eventListView").style.display = "block";
+      document.getElementById("eventFormView").style.display = "none";
+      document.getElementById("eventListView").style.display = "block";
     }
 
     function addEvent() {
-      document.getElementById("greeting").style.display = "none";
-      const eventInput = document.getElementById("eventNameInput").value;
+      const name = document.getElementById("eventNameInput").value;
+      const color = document.getElementById("eventColorInput").value;
+      const time = document.getElementById("eventTimeInput").value;
+      const day = document.getElementById("eventDayInput").value;
+      const repeat = document.getElementById("eventRepeatInput").value;
+      const rotationText = document.getElementById("eventRotationInput").value;
+      const rotation = rotationText ? rotationText.split(",") : [];
+      const everyXDays = document.getElementById("eventEveryXDays").value;
 
-      if (eventInput) {
-        user_entries.push(eventInput);
-        alert("Event '" + eventInput + "' added!");
-        document.getElementById("eventNameInput").value = ""; // clear input
+      if (!name) {
+        alert("You must enter an event name.");
+        return;
       }
+
+      let events = JSON.parse(localStorage.getItem("events") || "[]");
+      events.push({
+        name: name,
+        color: color,
+        time: time,
+        day: day,
+        repeat: repeat,
+        rotation: rotation,
+        everyXDays: everyXDays ? Number(everyXDays) : null
+      });
+      localStorage.setItem("events", JSON.stringify(events));
+
+      // Clear inputs
+      document.getElementById("eventNameInput").value = "";
+      document.getElementById("eventRotationInput").value = "";
+
       loadEvents();
+      showEventList();
     }
 
-    // function loadEvents() {
-    //     let events = JSON.parse(localStorage.getItem("events") || "[]");
-    //     const list = document.getElementById("eventList");
-    //     list.innerHTML = "";
-    //     events.forEach(event => {
-    //         const li = document.createElement("li");
-    //         li.innerText = event;
-    //         list.appendChild(li);
-    //     });
-    // }
+    function loadEvents() {
+      let events = JSON.parse(localStorage.getItem("events") || "[]");
+      const list = document.getElementById("eventList");
+      list.innerHTML = "";
 
-    if (savedName) {
-        loadEvents();
+      events.forEach(event => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span style='color:${event.color}'>●</span> ${event.name} (${event.day} @ ${event.time}, ${event.repeat})`;
+        list.appendChild(li);
+      });
     }
 
+    if (savedName) loadEvents();
   </script>
-
 </body>
+
+
 </html>
