@@ -1,99 +1,149 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Personal App</title>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Reminder App</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4a90e2">
   <style>
-    body { font-family: sans-serif; padding: 20px; text-align: center; }
-    input, button {
+    :root {
+      --primary: #4a90e2;
+      --accent: #ff7675;
+      --bg: #f7f9fc;
+      --card-bg: #fff;
+      --text: #333;
+      --radius: 12px;
+      --shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1, h2 { color: var(--primary); text-align: center; }
+
+    input, select, button {
       padding: 10px;
-      font-size: 18px;
-      margin-top: 10px;
+      margin: 5px 0;
+      border-radius: var(--radius);
+      border: 1px solid #ccc;
+      font-size: 16px;
+      width: 90%;
+      max-width: 350px;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover { background: #3c7ed0; }
+
+    .card {
+      background: var(--card-bg);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 15px;
+      margin: 10px 0;
+      width: 90%;
+      max-width: 400px;
+      text-align: left;
+      position: relative;
+    }
+
+    .event-dot {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+
+    .due {
+      border-left: 6px solid var(--accent);
+      background: #ffecec;
+    }
+
+    #appIcon {
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      border-radius: 50%;
+      position: fixed;
+      top: 105px;
+      right: 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    #appIcon.due {
+      background: var(--accent);
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
     }
   </style>
 </head>
 
 <body>
-
+  <div id="appIcon">⏰</div>
   <h1 id="greeting">Welcome!</h1>
 
+  <!-- Name Setup -->
   <div id="nameForm">
-    <p>Enter your name:</p>
+    <p>Enter your name to begin:</p>
     <input id="nameInput" type="text" placeholder="Your name" />
     <button onclick="saveName()">Save</button>
   </div>
 
   <!-- Event List View -->
   <div id="eventListView" style="display:none;">
-    <h2>Your Events:</h2>
-    <ul id="eventList"></ul>
-    <button onclick="showEventForm()">Add Event</button>
+    <h2>Your Reminders</h2>
+    <div id="eventList"></div>
+    <button onclick="showEventForm()">+ Add Reminder</button>
   </div>
 
   <!-- Event Form View -->
   <div id="eventFormView" style="display:none;">
-    <h2>Add an Event:</h2>
-
-    <!-- Event Name -->
-    <p>Event Name:</p>
-    <input id="eventNameInput" type="text" placeholder="Event name" />
-
-    <!-- Color -->
-    <p>Event Color:</p>
-    <input id="eventColorInput" type="color" />
-
-    <!-- Time -->
-    <p>Time:</p>
-    <input id="eventTimeInput" type="time" />
-
-    <!-- Day -->
-    <p>Day of Week:</p>
-    <select id="eventDayInput">
-      <option>Monday</option>
-      <option>Tuesday</option>
-      <option>Wednesday</option>
-      <option>Thursday</option>
-      <option>Friday</option>
-      <option>Saturday</option>
-      <option>Sunday</option>
-    </select>
-
-    <!-- Repetition -->
-    <p>Repetition:</p>
-    <select id="eventRepeatInput">
-      <option>None</option>
-      <option>Daily</option>
-      <option>Weekly</option>
-      <option>Monthly</option>
-    </select>
-
-    <p>Remind every X days:</p>
-    <input id="eventEveryXDays" type="number" min="1" placeholder="ex: 3" />
-
-    <!-- Rotation (sub-events) -->
-    <p>Rotation / Sub-events (comma separated):</p>
-    <input id="eventRotationInput" type="text" placeholder="ex: wash, dry, fold" />
-
-    <br/><br/>
-    <button onclick="addEvent()">Save Event</button>
-    <br/><br/>
-    <button onclick="showEventList()">Back to Event List</button>
+    <h2>Add a Reminder</h2>
+    <input id="eventNameInput" type="text" placeholder="Reminder name" />
+    <input id="eventColorInput" type="color" value="#4a90e2" />
+    <input id="eventEveryXDays" type="number" min="1" placeholder="Remind every X days (ex: 3)" />
+    <input id="eventRotationInput" type="text" placeholder="Rotation list (comma separated)" />
+    <button onclick="addEvent()">Save Reminder</button>
+    <button onclick="showEventList()">Back</button>
   </div>
 
   <script>
+    const appIcon = document.getElementById("appIcon");
     const savedName = localStorage.getItem("username");
 
-    // If name exists → show greeting + events
     if (savedName) {
       document.getElementById("greeting").innerText = "Welcome back, " + savedName + "!";
       document.getElementById("nameForm").style.display = "none";
       document.getElementById("eventListView").style.display = "block";
+      loadEvents();
     }
 
     function saveName() {
-      const input = document.getElementById("nameInput").value;
-      if (input) {
-        localStorage.setItem("username", input);
+      const name = document.getElementById("nameInput").value.trim();
+      if (name) {
+        localStorage.setItem("username", name);
         location.reload();
       }
     }
@@ -106,58 +156,114 @@
     function showEventList() {
       document.getElementById("eventFormView").style.display = "none";
       document.getElementById("eventListView").style.display = "block";
+      loadEvents();
     }
 
     function addEvent() {
-      const name = document.getElementById("eventNameInput").value;
+      const name = document.getElementById("eventNameInput").value.trim();
       const color = document.getElementById("eventColorInput").value;
-      const time = document.getElementById("eventTimeInput").value;
-      const day = document.getElementById("eventDayInput").value;
-      const repeat = document.getElementById("eventRepeatInput").value;
-      const rotationText = document.getElementById("eventRotationInput").value;
-      const rotation = rotationText ? rotationText.split(",") : [];
-      const everyXDays = document.getElementById("eventEveryXDays").value;
+      const everyXDays = parseInt(document.getElementById("eventEveryXDays").value);
+      const rotationText = document.getElementById("eventRotationInput").value.trim();
+      const rotation = rotationText ? rotationText.split(",").map(s => s.trim()) : [];
 
-      if (!name) {
-        alert("You must enter an event name.");
+      if (!name || !everyXDays) {
+        alert("Please fill out both name and interval (X days).");
         return;
       }
 
       let events = JSON.parse(localStorage.getItem("events") || "[]");
       events.push({
-        name: name,
-        color: color,
-        time: time,
-        day: day,
-        repeat: repeat,
-        rotation: rotation,
-        everyXDays: everyXDays ? Number(everyXDays) : null
+        id: Date.now(),
+        name,
+        color,
+        everyXDays,
+        rotation,
+        rotationIndex: 0,
+        lastTriggered: null
       });
       localStorage.setItem("events", JSON.stringify(events));
-
-      // Clear inputs
-      document.getElementById("eventNameInput").value = "";
-      document.getElementById("eventRotationInput").value = "";
-
-      loadEvents();
       showEventList();
     }
 
     function loadEvents() {
+      const container = document.getElementById("eventList");
+      container.innerHTML = "";
       let events = JSON.parse(localStorage.getItem("events") || "[]");
-      const list = document.getElementById("eventList");
-      list.innerHTML = "";
 
-      events.forEach(event => {
-        const li = document.createElement("li");
-        li.innerHTML = `<span style='color:${event.color}'>●</span> ${event.name} (${event.day} @ ${event.time}, ${event.repeat})`;
-        list.appendChild(li);
+      let dueExists = false;
+      const now = Date.now();
+
+      events.forEach(ev => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        let due = false;
+        if (ev.lastTriggered) {
+          const diffDays = Math.floor((now - ev.lastTriggered) / (1000 * 60 * 60 * 24));
+          if (diffDays >= ev.everyXDays) due = true;
+        } else {
+          due = true;
+        }
+
+        if (due) {
+          card.classList.add("due");
+          dueExists = true;
+        }
+
+        const rotationItem = ev.rotation.length ? `Next: ${ev.rotation[ev.rotationIndex]}` : "";
+
+        card.innerHTML = `
+          <div><span class="event-dot" style="color:${ev.color}">●</span> 
+          <b>${ev.name}</b><br>
+          <small>${rotationItem}</small></div>
+          <br>
+          <button onclick="markDone(${ev.id})">Mark as Done</button>
+          <button onclick="deleteEvent(${ev.id})" style="background:#ccc; color:#000;">Delete</button>
+        `;
+
+        container.appendChild(card);
       });
+
+      if (dueExists) {
+        appIcon.classList.add("due");
+        if (Notification.permission === "granted") {
+          new Notification("You have reminders due!", { body: "Open the app to review them." });
+        }
+      } else {
+        appIcon.classList.remove("due");
+      }
     }
 
-    if (savedName) loadEvents();
+    function markDone(id) {
+      let events = JSON.parse(localStorage.getItem("events") || "[]");
+      const event = events.find(e => e.id === id);
+      if (!event) return;
+
+      event.lastTriggered = Date.now();
+      if (event.rotation.length > 0) {
+        event.rotationIndex = (event.rotationIndex + 1) % event.rotation.length;
+      }
+      localStorage.setItem("events", JSON.stringify(events));
+      loadEvents();
+    }
+
+    function deleteEvent(id) {
+      let events = JSON.parse(localStorage.getItem("events") || "[]");
+      events = events.filter(e => e.id !== id);
+      localStorage.setItem("events", JSON.stringify(events));
+      loadEvents();
+    }
+
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+
+    // Register service worker for PWA offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('✅ Service Worker registered.'))
+        .catch(err => console.error('SW registration failed:', err));
+    }
   </script>
 </body>
-
-
 </html>
